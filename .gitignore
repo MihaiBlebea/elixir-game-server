@@ -23,3 +23,7 @@ erl_crash.dump
 game_server-*.tar
 
 .elixir_ls
+
+public/node_modules
+
+public/dist
