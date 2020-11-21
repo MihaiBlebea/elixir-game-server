@@ -113,7 +113,7 @@ defmodule GameServer.Board do
         |> Enum.filter(fn (pos)-> pos !== nil end)
     end
 
-    @spec get_box(map, number, number) :: %Box{} | nil
+    @spec get_box(map, number, number) :: map | nil
     def get_box(board, x, y) do
         board
         |> Map.get(x)
@@ -128,7 +128,7 @@ defmodule GameServer.Board do
     end
 
     defp add_box(board, x, y) do
-        row = board |> Map.get(x, %{}) |> Map.put(y, %Box{})
+        row = board |> Map.get(x, %{}) |> Map.put(y, %{entities: []})
         board |> Map.put(x, row)
     end
 
