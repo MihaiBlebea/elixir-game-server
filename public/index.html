@@ -23,10 +23,10 @@
                 })
             }
 
-            submit(message) {        
+            submit(data) {        
                 this.socket.send(
                     JSON.stringify({
-                        data: {message: message},
+                        data: data,
                     })
                 )
             }
@@ -35,7 +35,10 @@
         let sock = new SocketClient()
         sock.setupSocket()
 
-        setTimeout(()=> sock.submit("Hey how are you"), 1500)
+        setTimeout(()=> sock.submit({
+            type: 'game_create',
+            message: 'please create a game'
+        }), 1500)
 
     </script>
     </body>

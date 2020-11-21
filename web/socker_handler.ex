@@ -16,21 +16,33 @@ defmodule GameServer.SocketHandler do
     @spec websocket_handle({:text, bitstring | char_list}, any) :: {:reply, {:text, any}, any}
     def websocket_handle({:text, json}, state) do
         payload = JSON.decode!(json)
-        message = payload["data"]["message"]
-        IO.inspect payload
+        response = payload["data"] |> handle_type
+
+        # message = payload["data"]["message"]
+        # IO.inspect payload
         :socket_conn_registry
         |> Registry.dispatch(state.registry_key, fn(entries) ->
             for {pid, _} <- entries do
                 if pid != self() do
-                    Process.send(pid, message, [])
+                    Process.send(pid, response, [])
                 end
             end
         end)
 
-        {:reply, {:text, message}, state}
+        {:reply, {:text, response}, state}
     end
 
     def websocket_info(info, state) do
         {:reply, {:text, info}, state}
+    end
+
+    def handle_type(%{"type" => "game_create"}) do
+        game_id = GameServer.Game.start_link()
+        board = GameServer.Game.get(game_id, :board)
+
+        JSON.encode!(%{
+            game_id: game_id,
+            board: board
+        })
     end
 end

@@ -15,10 +15,20 @@ defmodule GameServer.Game do
         end
     end
 
-    @spec lookup(binary) :: any
+    @spec lookup(binary) :: pid | nil
     def lookup(game_id) do
         Registry.lookup(:game_registry, game_id) |> Enum.at(0, nil) |> extract_pid
     end
 
     defp extract_pid({pid, nil}), do: pid
+
+    defp extract_pid(nil), do: nil
+
+    @spec get(binary, binary) :: nil
+    def get(game_id, key) when is_binary(game_id) do
+        case lookup(game_id) do
+            nil -> nil
+            pid -> pid |> Agent.get(fn (state)-> Map.get(state, key) end)
+        end
+    end
 end
