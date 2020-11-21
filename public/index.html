@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <title>Bomberman</title>
+        <script src="//cdn.jsdelivr.net/npm/phaser@3.24.1/dist/phaser.min.js"></script>
+    </head>
+    <body>
+
+    <script src="./dist/index.js"></script>
+    <script>
+        class SocketClient {
+
+            socket = null
+
+            setupSocket() {
+                this.socket = new WebSocket("ws://localhost:4000/ws/chat")
+
+                this.socket.addEventListener("message", (event) => {
+                    console.log("We got a message", event.data)
+                })
+        
+                this.socket.addEventListener("close", () => {
+                    this.setupSocket()
+                })
+            }
+
+            submit(message) {        
+                this.socket.send(
+                    JSON.stringify({
+                        data: {message: message},
+                    })
+                )
+            }
+        }
+
+        let sock = new SocketClient()
+        sock.setupSocket()
+
+        setTimeout(()=> sock.submit("Hey how are you"), 1500)
+
+    </script>
+    </body>
+</html>
