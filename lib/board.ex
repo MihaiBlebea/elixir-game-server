@@ -40,6 +40,7 @@ defmodule GameServer.Board do
         |> build_concrete_walls
         |> build_brick_walls
         |> build_enemies
+        |> add_player
     end
 
     @doc """

@@ -24,7 +24,7 @@ export default class GameScene extends Phaser.Scene
 
     create()
     {
-        this.player = this.physics.add.sprite(40 + 32 / 2, 40 + 32 / 2, 'player', 0)
+        // this.player = this.physics.add.sprite(40 + 32 / 2, 40 + 32 / 2, 'player', 0)
         // this.bomb = this.physics.add.sprite(40 + 32 / 2, 40 + 32 / 2, 'bomb', 1)
         console.log(this.board)
 
@@ -147,6 +147,9 @@ export default class GameScene extends Phaser.Scene
                             break
                         case 'enemy':
                             this.walls.create(x * boxSize + boxSize / 2, y * boxSize + boxSize / 2, 'enemy')
+                            break
+                        case 'player':
+                            this.player = this.physics.add.sprite(x * boxSize + boxSize / 2, y * boxSize + boxSize / 2, 'player', 0)
                             break
                     }
                 }
