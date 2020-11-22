@@ -1,3 +1,4 @@
+const Phaser = requrie('phaser')
 const Box          = require('./Box')
 const BrickWall    = require('./BrickWall')
 const ConcreteWall = require('./ConcreteWall')

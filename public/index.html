@@ -1,45 +1,10 @@
 <html>
     <head>
         <title>Bomberman</title>
-        <script src="//cdn.jsdelivr.net/npm/phaser@3.24.1/dist/phaser.min.js"></script>
+        <!-- <script src="//cdn.jsdelivr.net/npm/phaser@3.24.1/dist/phaser.min.js"></script> -->
     </head>
     <body>
 
     <script src="./dist/index.js"></script>
-    <script>
-        class SocketClient {
-
-            socket = null
-
-            setupSocket() {
-                this.socket = new WebSocket("ws://localhost:4000/ws/chat")
-
-                this.socket.addEventListener("message", (event) => {
-                    console.log("We got a message", event.data)
-                })
-        
-                this.socket.addEventListener("close", () => {
-                    this.setupSocket()
-                })
-            }
-
-            submit(data) {        
-                this.socket.send(
-                    JSON.stringify({
-                        data: data,
-                    })
-                )
-            }
-        }
-
-        let sock = new SocketClient()
-        sock.setupSocket()
-
-        setTimeout(()=> sock.submit({
-            type: 'game_create',
-            message: 'please create a game'
-        }), 1500)
-
-    </script>
     </body>
 </html>

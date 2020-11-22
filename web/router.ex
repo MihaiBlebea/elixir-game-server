@@ -20,7 +20,16 @@ defmodule GameServer.Router do
     get "/board" do
         conn
         |> put_resp_content_type("application/json")
-        |> send_resp(200, JSON.encode!(GameServer.Board.build(11)))
+        |> send_resp(200, Poison.encode!(GameServer.Board.build(11)))
+    end
+
+    post "/game" do
+        game_id = GameServer.Game.start_link()
+        # board = GameServer.Game.get(game_id, :board)
+
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(200, Poison.encode!(%{code: game_id}))
     end
 
     match _ do

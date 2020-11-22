@@ -25,7 +25,8 @@ defmodule GameServer.MixProject do
     defp deps do
         [
             {:plug_cowboy, "~> 2.0"},
-            {:json, "~> 1.2"},
+            # {:json, "~> 1.2"},
+            {:poison, "~> 3.1"},
             { :uuid, "~> 1.1" }
         ]
     end

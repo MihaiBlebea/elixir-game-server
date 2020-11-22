@@ -24,7 +24,7 @@ defmodule GameServer.Game do
 
     defp extract_pid(nil), do: nil
 
-    @spec get(binary, binary) :: nil
+    @spec get(binary, binary) :: any
     def get(game_id, key) when is_binary(game_id) do
         case lookup(game_id) do
             nil -> nil

@@ -1,4 +1,8 @@
-class Menu extends Phaser.Scene
+// const Phaser = requrie('phaser')
+
+import Phaser from 'phaser'
+
+export default class Menu extends Phaser.Scene
 {
     constructor()
     {
@@ -22,4 +26,4 @@ class Menu extends Phaser.Scene
     }
 }
 
-module.exports = Menu
+// module.exports = Menu
