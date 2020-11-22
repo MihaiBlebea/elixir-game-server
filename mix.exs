@@ -27,7 +27,8 @@ defmodule GameServer.MixProject do
             {:plug_cowboy, "~> 2.0"},
             # {:json, "~> 1.2"},
             {:poison, "~> 3.1"},
-            { :uuid, "~> 1.1" }
+            { :uuid, "~> 1.1" },
+            {:ex_doc, "~> 0.22", only: :dev, runtime: false},
         ]
     end
 end

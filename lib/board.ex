@@ -6,6 +6,14 @@ defmodule GameServer.Board do
 
     alias GameServer.Entity
 
+    @moduledoc """
+    This module creates and updates the board of the game. It acts as an aggregate to lower level entities like player, walls, bombs, etc.
+    It can generate a board by calling the method build and providing a parameter size as integer.
+
+    ```
+    board = GameServer.Board.build(21)
+    ```
+    """
     @spec build(number) :: map
     def build(size) do
         cond do
@@ -32,6 +40,22 @@ defmodule GameServer.Board do
         |> build_concrete_walls
         |> build_brick_walls
         |> build_enemies
+    end
+
+    @doc """
+    ### add_player
+    Adds a player entity to the board. Returns the board map.
+    ```
+    GameServer.Board.add_player(board)
+    ```
+    """
+    @spec add_player(map) :: map
+    def add_player(board) do
+        empty_boxes = get_empty_boxes board
+        index = length(empty_boxes) - 1 |> :rand.uniform
+        %{x: x, y: y} = empty_boxes |> Enum.at(index)
+
+        add_entity(board, x, y, :player)
     end
 
     defp build_concrete_walls(board) do

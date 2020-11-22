@@ -2,16 +2,12 @@ defmodule GameServer.SocketHandler do
     @behaviour :cowboy_websocket
 
     def init(request, _state) do
-
-        IO.inspect request
         state = %{registry_key: request.path}
         {:cowboy_websocket, request, state}
     end
 
     @spec websocket_init(atom | %{registry_key: any}) :: {:ok, atom | %{registry_key: any}}
     def websocket_init(state) do
-        IO.inspect state
-        IO.inspect "SOCKET INIT"
         :socket_conn_registry |> Registry.register(state.registry_key, {})
 
         {:ok, state}

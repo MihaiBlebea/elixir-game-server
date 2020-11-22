@@ -8,6 +8,9 @@ defmodule GameServer.Router do
     plug Plug.Static,
         at: "/",
         from: "./public"
+    plug Plug.Static,
+        at: "/",
+        from: "./doc"
     plug :match
     plug :dispatch
 
@@ -15,6 +18,12 @@ defmodule GameServer.Router do
         conn
         |> put_resp_content_type("text/html")
         |> send_resp(200, File.read!("./public/index.html"))
+    end
+
+    get "/docs" do
+        conn
+        |> put_resp_content_type("text/html")
+        |> send_resp(200, File.read!("./doc/index.html"))
     end
 
     get "/board" do
