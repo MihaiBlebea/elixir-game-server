@@ -34,7 +34,6 @@ defmodule GameServer.Router do
 
     post "/game" do
         game_id = GameServer.Game.start_link()
-        # board = GameServer.Game.get(game_id, :board)
 
         conn
         |> put_resp_content_type("application/json")

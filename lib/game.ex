@@ -1,7 +1,7 @@
 defmodule GameServer.Game do
     use Agent
 
-    defstruct id: nil, board: nil, players: nil
+    defstruct id: nil, board: nil, players: []
 
     @spec start_link :: binary
     def start_link() do
@@ -29,6 +29,22 @@ defmodule GameServer.Game do
         case lookup(game_id) do
             nil -> nil
             pid -> pid |> Agent.get(fn (state)-> Map.get(state, key) end)
+        end
+    end
+
+    @spec put(binary, atom, any) :: :ok | :fail
+    def put(game_id, key, value) when is_atom(key) do
+        case lookup(game_id) do
+            nil -> :fail
+            pid -> Agent.update(pid, fn (state)-> Map.put(state, key, value) end)
+        end
+    end
+
+    @spec put(binary, atom, any) :: :ok | :fail
+    def put_player(game_id, value) do
+        case lookup(game_id) do
+            nil -> :fail
+            pid -> Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [value]) end)
         end
     end
 end
