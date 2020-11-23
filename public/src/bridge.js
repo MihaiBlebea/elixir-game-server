@@ -2,15 +2,14 @@ export default class Bridge
 {
     socket = null
 
-    address = "ws://localhost:4000/ws/chat"
+    address = "ws://localhost:4000/ws"
 
-    setupSocket(callback) {
-        this.socket = new WebSocket(this.address)
+    setup(gameId, callback) {
+        console.log(this.address + '/' + gameId)
+        this.socket = new WebSocket(this.address + '/' + gameId)
 
         this.socket.addEventListener("message", (event) => {
-            // console.log("We got a message", event.data)
-            // console.log(event.data)
-            callback(JSON.parse(JSON.parse(JSON.stringify(event.data))))
+            callback(JSON.parse(event.data))
         })
 
         this.socket.addEventListener("close", () => {
@@ -18,7 +17,7 @@ export default class Bridge
         })
     }
 
-    submit(data) {        
+    submit(data) {      
         this.socket.send(
             JSON.stringify({
                 data: data,

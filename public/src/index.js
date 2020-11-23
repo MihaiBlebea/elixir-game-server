@@ -4,10 +4,10 @@ import IntroScene from './IntroScene'
 import GameScene from './GameScene'
 
 
-let bridge = new Bridge()
+// let bridge = new Bridge()
 
 let sharedConfig = {
-    bridge: bridge
+    // bridge: bridge
 }
 
 let config = {
@@ -39,12 +39,14 @@ let config = {
 
 let game = new Phaser.Game(config)
 
-bridge.setupSocket((event)=> {
-    // console.log('THis is the event', event)
-    if (event.type === 'game_joined') {
-        // console.log(event)
-        game.scene.remove('intro-scene')
-        game.scene.start('game-scene', event)
-        // console.log(game)
-    }
-})
+game.bridge = new Bridge()
+
+// bridge.setupSocket((event)=> {
+//     // console.log('THis is the event', event)
+//     if (event.type === 'game_joined') {
+//         // console.log(event)
+//         game.scene.remove('intro-scene')
+//         game.scene.start('game-scene', event)
+//         // console.log(game)
+//     }
+// })

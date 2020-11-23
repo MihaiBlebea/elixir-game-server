@@ -28,6 +28,7 @@ export default class IntroScene extends Phaser.Scene
 
     create()
     {
+        console.log(this)
         this.player = this.physics.add.sprite(40 + 32 / 2, 40 + 32 / 2, 'player', 0).setDepth(2).setScale(3)
         this.anims.create({
             key: 'hero',
@@ -56,12 +57,17 @@ export default class IntroScene extends Phaser.Scene
                 
             } else if (event.target.name === 'joinGameButton') {
 
-                let gameCode = event.view.document.getElementById('game-code').value
-                if (gameCode === '') {
+                let gameId = event.view.document.getElementById('game-code').value
+                if (gameId === '') {
                     return
                 }
+                console.log(gameId)
 
-                this.sharedConfig.bridge.submit({type: 'game_join', code: gameCode})
+                this.game.bridge.setup(gameId, (event)=> {
+                    console.log(event)
+                })
+
+                this.game.bridge.submit({type: 'game_join'})
             }
         })
     }
