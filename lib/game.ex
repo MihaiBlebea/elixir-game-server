@@ -47,4 +47,12 @@ defmodule GameServer.Game do
             pid -> Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [value]) end)
         end
     end
+
+    @spec put_board(binary, map) :: :fail | :ok
+    def put_board(game_id, value) do
+        case lookup(game_id) do
+            nil -> :fail
+            pid -> Agent.update(pid, fn (state)-> Map.put(state, :board, value) end)
+        end
+    end
 end
