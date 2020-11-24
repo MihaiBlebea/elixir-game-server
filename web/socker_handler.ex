@@ -19,9 +19,9 @@ defmodule GameServer.SocketHandler do
         %{ type: "game_joined", board: board } |> Poison.encode!
     end
 
-    defp handle_event_type(%{"type" => "game_move"}, game_id) do
+    defp handle_event_type(%{"type" => "game_move", "direction" => direction}, game_id) do
         # board = GameServer.Game.get(game_id, :board)
-        resp = %{ type: "game_moved" } |> Poison.encode!
+        resp = %{ type: "game_moved", direction: direction } |> Poison.encode!
 
         Game.get(game_id, :players)
         |> Enum.map(fn (pid)->

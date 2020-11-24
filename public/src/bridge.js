@@ -1,29 +1,30 @@
 export default class Bridge 
 {
-    socket = null
-
     address = "ws://localhost:4000/ws"
 
-    setup(gameId, callback) {
-        console.log(this.address + '/' + gameId)
-        this.socket = new WebSocket(this.address + '/' + gameId)
+    connection = null
 
-        this.socket.addEventListener("message", (event) => {
-            callback(JSON.parse(event.data))
-        })
+    connect(gameId)
+    {
+        return new Promise((resolve, reject)=> {
+            this.connection = new WebSocket(this.address + '/' + gameId)
 
-        this.socket.addEventListener("close", () => {
-            this.setupSocket()
+            this.connection.onopen = ()=> {
+                console.log("connected")
+                resolve(this.connection)
+            }
+
+            this.connection.onerror = (e)=> {
+                reject(e)
+            }
         })
     }
 
-    submit(data) {      
-        this.socket.send(
-            JSON.stringify({
-                data: data,
-            })
-        )
+    submit(data) {  
+        if (this.connection === null) {
+            return null
+        }    
+
+        this.connection.send(JSON.stringify(data))
     }
 }
-
-// module.exports = Bridge

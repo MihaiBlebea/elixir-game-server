@@ -61,13 +61,25 @@ export default class IntroScene extends Phaser.Scene
                 if (gameId === '') {
                     return
                 }
-                console.log(gameId)
+                console.log('game id ', gameId)
 
-                this.game.bridge.setup(gameId, (event)=> {
-                    console.log(event)
+                // Needs refactoring to use async / await 
+                this.game.bridge.connect(gameId).then((conn)=> {
+                    conn.onmessage = (e)=> {
+                        console.log('Message ', JSON.parse(e.data))
+                        let data = JSON.parse(e.data)
+
+                        if (data.type === 'game_joined') {
+                            this.game.scene.remove('intro-scene')
+                            this.game.scene.start('game-scene', data)
+                        }
+                    }
+
+                    conn.send(JSON.stringify({type: 'game_join'}))
+                }).catch((e)=> {
+                    console.log(e)
                 })
-
-                this.game.bridge.submit({type: 'game_join'})
+                // Needs refactoring to use async / await
             }
         })
     }
