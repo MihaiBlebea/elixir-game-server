@@ -6,6 +6,10 @@ export default class Bridge
 
     connect(gameId)
     {
+        if (this.connection !== null) { 
+            return Promise.resolve(this.connection)
+        }
+
         return new Promise((resolve, reject)=> {
             this.connection = new WebSocket(this.address + '/' + gameId)
 

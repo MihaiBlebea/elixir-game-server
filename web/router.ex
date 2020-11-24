@@ -35,6 +35,8 @@ defmodule GameServer.Router do
     post "/game" do
         game_id = GameServer.Game.start_link()
 
+        spawn fn ()-> GameServer.Game.run_game_loop(game_id) end
+
         conn
         |> put_resp_content_type("application/json")
         |> send_resp(200, Poison.encode!(%{code: game_id}))

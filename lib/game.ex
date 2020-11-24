@@ -15,6 +15,24 @@ defmodule GameServer.Game do
         end
     end
 
+    @doc """
+    Creates the game loop.
+    Put this in a different prcess and it will infinite loop,
+    sending updates of the board to all the registered players
+    """
+    @spec run_game_loop(any) :: none
+    def run_game_loop(game_id) do
+        board = get(game_id, :board)
+
+        resp = %{ type: "game_updated", board: board } |> Poison.encode!
+
+        get(game_id, :players) |> Enum.map(fn (pid)-> Process.send(pid, resp, []) end)
+
+        :timer.sleep 500
+
+        run_game_loop(game_id)
+    end
+
     @spec lookup(binary) :: pid | nil
     def lookup(game_id) do
         Registry.lookup(:game_registry, game_id) |> Enum.at(0, nil) |> extract_pid
@@ -44,7 +62,10 @@ defmodule GameServer.Game do
     def put_player(game_id, value) do
         case lookup(game_id) do
             nil -> :fail
-            pid -> Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [value]) end)
+            pid ->
+                # Adds a new player to the board
+                get(game_id, :board) |> GameServer.Board.add_player
+                Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [value]) end)
         end
     end
 

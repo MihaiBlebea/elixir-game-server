@@ -66,7 +66,7 @@ export default class IntroScene extends Phaser.Scene
                 // Needs refactoring to use async / await 
                 this.game.bridge.connect(gameId).then((conn)=> {
                     conn.onmessage = (e)=> {
-                        console.log('Message ', JSON.parse(e.data))
+                        // console.log('Message ', JSON.parse(e.data))
                         let data = JSON.parse(e.data)
 
                         if (data.type === 'game_joined') {

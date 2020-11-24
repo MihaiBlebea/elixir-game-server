@@ -26,9 +26,18 @@ export default class GameScene extends Phaser.Scene
     {
         // this.player = this.physics.add.sprite(40 + 32 / 2, 40 + 32 / 2, 'player', 0)
         // this.bomb = this.physics.add.sprite(40 + 32 / 2, 40 + 32 / 2, 'bomb', 1)
-        console.log(this.board)
 
         this.buildBoard()
+
+        this.game.bridge.connect('').then((conn)=> {
+            conn.onmessage = (e)=> {
+                let data = JSON.parse(e.data)
+                console.log(data)
+                this.board = data.board
+
+                // this.buildBoard()
+            }
+        })
         
 
         // this.physics.add.collider(this.player, this.enemy, (event) => {
@@ -95,7 +104,7 @@ export default class GameScene extends Phaser.Scene
 
     update(delta)
     {
-        this.movePlayer()
+        // this.movePlayer()
     }
 
     movePlayer() 

@@ -20,7 +20,6 @@ defmodule GameServer.SocketHandler do
     end
 
     defp handle_event_type(%{"type" => "game_move", "direction" => direction}, game_id) do
-        # board = GameServer.Game.get(game_id, :board)
         resp = %{ type: "game_moved", direction: direction } |> Poison.encode!
 
         Game.get(game_id, :players)
