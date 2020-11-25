@@ -26,21 +26,21 @@ defmodule GameServer.Router do
         |> send_resp(200, File.read!("./doc/index.html"))
     end
 
-    get "/board" do
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(200, Poison.encode!(GameServer.Board.build(11)))
-    end
+    # get "/board" do
+    #     conn
+    #     |> put_resp_content_type("application/json")
+    #     |> send_resp(200, Poison.encode!(GameServer.Board.build(11)))
+    # end
 
-    post "/game" do
-        game_id = GameServer.Game.start_link()
+    # post "/game" do
+    #     game_id = GameServer.Game.start_link()
 
-        spawn fn ()-> GameServer.Game.run_game_loop(game_id) end
+    #     spawn fn ()-> GameServer.Game.run_game_loop(game_id) end
 
-        conn
-        |> put_resp_content_type("application/json")
-        |> send_resp(200, Poison.encode!(%{code: game_id}))
-    end
+    #     conn
+    #     |> put_resp_content_type("application/json")
+    #     |> send_resp(200, Poison.encode!(%{code: game_id}))
+    # end
 
     match _ do
         send_resp(conn, 404, "Route not found")

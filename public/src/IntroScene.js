@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import axios from 'axios'
 
 export default class IntroScene extends Phaser.Scene
 {
@@ -20,72 +19,75 @@ export default class IntroScene extends Phaser.Scene
 
     preload()
     {
-        this.load.html('intro-form', './assets/intro-form.html');
-        this.load.image('background', './assets/space.jpg')
-
-        this.load.spritesheet('player', './assets/Male/Male 01-1.png', {frameWidth: 32, frameHeight: 32})
+        this.load.html('intro-form', './assets/intro-form.html')
     }
 
     create()
     {
-        console.log(this)
-        this.player = this.physics.add.sprite(40 + 32 / 2, 40 + 32 / 2, 'player', 0).setDepth(2).setScale(3)
-        this.anims.create({
-            key: 'hero',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 5}),
-            repeatw: -1,
-            frameRate: 4
-        })
+        this.handleSocketConnection()
 
-        this.add.image(0, 0, 'background').setScale(1.1, 1.1).setOrigin(0, 0)
+        // scene title
+        this.add.text(this.canvasWidth / 2, 200, 'Join or create a new game', { color: 'white', fontFamily: 'Arial', fontSize: '32px '}).setOrigin(0.5)
 
-        let text = this.add.text(this.canvasWidth / 2, 200, 'Join or create a new game', { color: 'white', fontFamily: 'Arial', fontSize: '32px '}).setOrigin(0.5)
-
+        // scene form html
         let element = this.add.dom(400, 600).createFromCache('intro-form')
 
-        element.addListener('click');
+        element.addListener('click')
 
         element.on('click', (event)=> {
 
             if (event.target.name === 'createGameButton') {
                 
-                axios.post('/game').then((result)=> {
-                    event.view.document.getElementById('game-code').value = result.data.code
-                }).catch((err)=> {
-                    console.log(err)
-                })
+                this.game.bridge.submit({ type: 'game_create', players_count: 2 })
                 
             } else if (event.target.name === 'joinGameButton') {
 
-                let gameId = event.view.document.getElementById('game-code').value
-                if (gameId === '') {
+                let gameId = document.getElementById('game-code').value
+                let username = document.getElementById('player-username').value
+                if (gameId === '' || username === '') {
                     return
                 }
-                console.log('game id ', gameId)
 
-                // Needs refactoring to use async / await 
-                this.game.bridge.connect(gameId).then((conn)=> {
-                    conn.onmessage = (e)=> {
-                        // console.log('Message ', JSON.parse(e.data))
-                        let data = JSON.parse(e.data)
-
-                        if (data.type === 'game_joined') {
-                            this.game.scene.remove('intro-scene')
-                            this.game.scene.start('game-scene', data)
-                        }
-                    }
-
-                    conn.send(JSON.stringify({type: 'game_join'}))
-                }).catch((e)=> {
-                    console.log(e)
-                })
-                // Needs refactoring to use async / await
+                this.game.bridge.submit({ type: 'game_join', game_id: gameId })
             }
         })
     }
 
     update()
     {
-        this.player.anims.play('hero', true)
+        // this.player.anims.play('hero', true)
+    }
+
+    handleSocketConnection()
+    {
+        console.log(this.game)
+        this.game.bridge.connect().then((conn)=> {
+            conn.onmessage = (e)=> {
+                
+                let data = JSON.parse(e.data)
+
+                if (data.type === 'game_created') {
+                    // this.game.scene.remove('intro-scene')
+                    // this.game.scene.start('game-scene', data)
+                    document.getElementById('game-code').value = data.game_id
+                }
+
+                if (data.type === 'game_joined') {
+                    // this.game.scene.remove('intro-scene')
+                    // this.game.scene.start('game-scene', data)
+                    if (data.hasOwnProperty('board') === true) {
+                        this.game.scene.remove('intro-scene')
+                        this.game.scene.start('game-scene', data)
+                    } else {
+
+                        document.getElementById('game-lobby').innerHTML = "Waiting for player..."
+                    }
+                }
+            }
+
+            // conn.send(JSON.stringify({type: 'game_join'}))
+        }).catch((e)=> {
+            console.log(e)
+        })
     }
 }

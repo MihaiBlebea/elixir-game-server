@@ -4,19 +4,26 @@ defmodule GameServer.SocketHandlerBase do
         quote do
             @behaviour :cowboy_websocket
 
-            def init(request, _state) do
-                state = request |> get_game_id_from_request |> add_game_id_to_state
+            require Logger
+
+            def init(request, state) do
                 {:cowboy_websocket, request, state}
             end
 
             @spec websocket_init(map) :: {:ok, map} | {:reply, {:close, 1000, binary}, map}
             def websocket_init(state) do
-                case Map.get(state, :game_id, nil) do
-                    nil -> close_connection state
-                    game_id ->
-                        GameServer.Game.put_player(game_id, self())
-                        {:ok, state}
-                end
+                {:ok, state}
+            end
+
+            @spec websocket_handle({:text, binary}, any) :: {:reply, {:text, any}, any}
+            def websocket_handle({:text, json}, state) do
+                resp =
+                    Poison.decode!(json)
+                    |> log
+                    |> handle_event_type
+                    |> log
+
+                {:reply, {:text, resp}, state}
             end
 
             @spec websocket_info(any, any) :: {:reply, {:text, any}, any}
@@ -28,9 +35,19 @@ defmodule GameServer.SocketHandlerBase do
 
             defp add_game_id_to_state(game_id), do: %{game_id: game_id}
 
-            defp get_game_id_from_state(state), do: Map.get(state, :game_id, nil)
+            defp log(payload) when is_map(payload) do
+                payload |> inspect |> Logger.debug
 
-            defp close_connection(state), do: {:reply, {:close, 1000, "reason"}, state}
+                payload
+            end
+
+            defp log(payload) when is_binary(payload) do
+                payload |> Poison.decode! |> inspect |> Logger.debug
+
+                payload
+            end
+
+            # defp close_connection(state), do: {:reply, {:close, 1000, "reason"}, state}
         end
     end
 end

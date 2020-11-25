@@ -4,14 +4,14 @@ export default class Bridge
 
     connection = null
 
-    connect(gameId)
+    connect()
     {
         if (this.connection !== null) { 
             return Promise.resolve(this.connection)
         }
 
         return new Promise((resolve, reject)=> {
-            this.connection = new WebSocket(this.address + '/' + gameId)
+            this.connection = new WebSocket(this.address)
 
             this.connection.onopen = ()=> {
                 console.log("connected")
