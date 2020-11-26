@@ -12,12 +12,11 @@ defmodule GameServer do
                     port: 4000
                 ]
             ),
-            Registry.child_spec(
-                keys: :duplicate,
-                name: :socket_conn_registry
-            ),
             {
                 Registry, [keys: :unique, name: :game_registry]
+            },
+            {
+                Registry, [keys: :unique, name: :player_registry]
             },
         ]
 

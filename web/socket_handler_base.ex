@@ -7,6 +7,7 @@ defmodule GameServer.SocketHandlerBase do
             require Logger
 
             def init(request, state) do
+                IO.inspect request
                 {:cowboy_websocket, request, state}
             end
 

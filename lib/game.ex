@@ -1,6 +1,8 @@
 defmodule GameServer.Game do
     use Agent
 
+    alias GameServer.Board
+
     defstruct id: nil, board: nil, players_count: nil, players: []
 
     @spec start_link :: binary
@@ -16,30 +18,11 @@ defmodule GameServer.Game do
 
     @spec generate_board(binary) :: :fail | :ok
     def generate_board(game_id) do
-        board = GameServer.Board.build(21)
+        board = Board.build(21)
 
         put_board(game_id, board)
     end
 
-    @doc """
-    Creates the game loop.
-    Put this in a different prcess and it will infinite loop,
-    sending updates of the board to all the registered players
-    """
-    # @spec run_game_loop(any) :: none
-    # def run_game_loop(game_id) do
-    #     board = get(game_id, :board)
-
-    #     resp = %{ type: "game_updated", board: board } |> Poison.encode!
-
-    #     get(game_id, :players) |> Enum.map(fn (pid)-> Process.send(pid, resp, []) end)
-
-    #     :timer.sleep 500
-
-    #     run_game_loop(game_id)
-    # end
-
-    @spec lookup(binary) :: pid | nil
     defp lookup(game_id) do
         Registry.lookup(:game_registry, game_id) |> Enum.at(0, nil) |> extract_pid
     end
@@ -77,7 +60,7 @@ defmodule GameServer.Game do
             nil -> :fail
             pid ->
                 # Adds a new player to the board
-                board = get_board(game_id) |> GameServer.Board.add_player
+                board = get_board(game_id) |> Board.add_player
                 put_board(game_id, board)
                 Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [value]) end)
         end
