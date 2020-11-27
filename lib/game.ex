@@ -55,14 +55,15 @@ defmodule GameServer.Game do
     def get_players_count(game_id), do: get(game_id, :players_count)
 
     @spec put_player(binary, any) :: :ok | :fail
-    def put_player(game_id, value) do
+    def put_player(game_id, player_id) do
         case lookup(game_id) do
             nil -> :fail
             pid ->
                 # Adds a new player to the board
                 board = get_board(game_id) |> Board.add_player
                 put_board(game_id, board)
-                Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [value]) end)
+
+                Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [player_id]) end)
         end
     end
 

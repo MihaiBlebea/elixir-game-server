@@ -6,9 +6,8 @@ defmodule GameServer.SocketHandlerBase do
 
             require Logger
 
-            def init(request, state) do
-                IO.inspect request
-                {:cowboy_websocket, request, state}
+            def init(request, _state) do
+                {:cowboy_websocket, request, %{client_id: GameServer.Client.create_id}}
             end
 
             @spec websocket_init(map) :: {:ok, map} | {:reply, {:close, 1000, binary}, map}
@@ -20,8 +19,12 @@ defmodule GameServer.SocketHandlerBase do
             def websocket_handle({:text, json}, state) do
                 resp =
                     Poison.decode!(json)
+                    |> to_atoms
+                    |> validate_payload
+                    |> add_client_id(state.client_id)
                     |> log
-                    |> handle_event_type
+                    |> handler
+                    |> handle_response
                     |> log
 
                 {:reply, {:text, resp}, state}
@@ -31,10 +34,6 @@ defmodule GameServer.SocketHandlerBase do
             def websocket_info(info, state) do
                 {:reply, {:text, info}, state}
             end
-
-            defp get_game_id_from_request(request), do: request.path_info |> Enum.at(0, nil)
-
-            defp add_game_id_to_state(game_id), do: %{game_id: game_id}
 
             defp log(payload) when is_map(payload) do
                 payload |> inspect |> Logger.debug
@@ -48,7 +47,39 @@ defmodule GameServer.SocketHandlerBase do
                 payload
             end
 
-            # defp close_connection(state), do: {:reply, {:close, 1000, "reason"}, state}
+            def to_atoms(map), do: for {key, val} <- map, into: %{}, do: { String.to_atom(key), val }
+
+            def validate_payload(payload) when is_map(payload) do
+                case Map.get(payload, :type, nil) do
+                    nil -> :fail
+                    val -> Map.put(payload, :type, String.to_atom(val))
+                end
+            end
+
+            defp send_to_clients(response, clients) when is_list(clients) do
+                clients
+                |> Enum.map(fn (pid)->
+                    if pid != self() do
+                        Process.send(pid, response, [])
+                    end
+                end)
+            end
+
+            defp handle_response([:sender, payload]) do
+                payload |> Poison.encode!
+            end
+
+            defp handle_response([clients, payload]) do
+                response = payload |> Poison.encode!
+
+                send_to_clients response, clients
+
+                response
+            end
+
+            defp add_client_id(payload, client_id), do: Map.put(payload, :client_id, client_id)
+
+            # defp close_connection(state, ), do: {:reply, {:close, 1000, "reason"}, state}
         end
     end
 end

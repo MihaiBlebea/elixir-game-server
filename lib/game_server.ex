@@ -1,6 +1,8 @@
 defmodule GameServer do
     use Application
 
+    alias GameServer.Client
+
     @spec start(any, any) :: {:error, any} | {:ok, pid}
     def start(_type, _args) do
         children = [
@@ -18,6 +20,9 @@ defmodule GameServer do
             {
                 Registry, [keys: :unique, name: :player_registry]
             },
+            {
+                Client, []
+            }
         ]
 
         Supervisor.start_link(children, strategy: :one_for_one)
