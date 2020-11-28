@@ -148,9 +148,9 @@ defmodule GameServer.Board do
         end
     end
 
-    defp get_row(board, x) do
-        board |> Map.get(x)
-    end
+    # defp get_row(board, x) do
+    #     board |> Map.get(x)
+    # end
 
     defp add_box(board, x, y) do
         row = board |> Map.get(x, %{}) |> Map.put(y, %{entities: []})
