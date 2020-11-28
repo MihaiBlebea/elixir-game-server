@@ -7,27 +7,18 @@ defmodule GameServer.SocketHandler do
     alias GameServer.Player
 
     defp handler(%{type: :game_create, player_count: players_count, game_name: game_name}) do
-        game_id = GameServer.Game.start_link
-        GameServer.Game.generate_board game_id
-        GameServer.Game.put_players_count game_id, players_count
+        game_id = Game.new(game_name, players_count)
 
         [:sender, %{ type: :game_created, game_id: game_id, max_players: players_count }]
     end
 
-    defp handler(%{type: :game_join, game_id: game_id, client_id: client_id}) do
-        case Game.player_spaces_left game_id do
-            0 -> [:sender, %{ type: :game_error, message: "no spaces left" }]
-            1 ->
-                # Send the board and start the game
-                # player_id = Player.start_link()
-
-                Game.put_player(game_id, self())
-                board = Game.get_board(game_id)
-                [Game.get_players(game_id), %{ type: :game_joined, board: board, spaces_left: 0, game_id: game_id}]
-
-            spaces_left ->
-                Game.put_player(game_id, self())
-                [Game.get_players(game_id), %{ type: :game_joined, spaces_left: spaces_left - 1, game_id: game_id}]
+    defp handler(%{type: :game_join, game_id: game_id, client_id: _client_id, player_name: player_name}) do
+        player_id = player_name |> Player.new(self())
+        case Game.put_player(game_id, player_id) do
+            :fail -> [:sender, %{ type: :game_error, message: "could not add player to the game" }]
+            spaces ->
+                clients = Game.get_players_client_pids(game_id)
+                [clients, %{ type: :game_joined, spaces_left: spaces, game_id: game_id}]
         end
     end
 
