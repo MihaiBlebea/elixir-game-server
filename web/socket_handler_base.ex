@@ -7,8 +7,6 @@ defmodule GameServer.SocketHandlerBase do
 
             require Logger
 
-            alias GameServer.Client
-
             def init(request, state) do
                 {:cowboy_websocket, request, state}
             end
@@ -63,7 +61,7 @@ defmodule GameServer.SocketHandlerBase do
             defp handle_response([game_id, payload], state) do
                 response = payload |> Poison.encode!
 
-                Client.dispatch(game_id, response)
+                GameServer.Client.dispatch(game_id, response)
 
                 {:ok, state}
             end

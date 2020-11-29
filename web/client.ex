@@ -19,14 +19,14 @@ defmodule GameServer.Client do
         end)
     end
 
-    @spec dispatch_except_sender(binary, any) :: :ok
-    def dispatch_except_sender(game_id, response) do
-        Registry.dispatch(@registry_key, game_id, fn (entries)->
-            for {pid, _listener} <- entries do
-                if pid !== self() do
-                    Process.send(pid, response, [])
-                end
-            end
-        end)
-    end
+    # @spec dispatch_except_sender(binary, any) :: :ok
+    # def dispatch_except_sender(game_id, response) do
+    #     Registry.dispatch(@registry_key, game_id, fn (entries)->
+    #         for {pid, _listener} <- entries do
+    #             if pid !== self() do
+    #                 Process.send(pid, response, [])
+    #             end
+    #         end
+    #     end)
+    # end
 end

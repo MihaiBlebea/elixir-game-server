@@ -8,27 +8,27 @@ defmodule GameServer.Game do
 
     use GameServer.ActorBase, registry_name: :game_registry
 
-    @spec generate_board(binary) :: :fail | :ok
-    def generate_board(game_id) do
-        board = Board.build(21)
+    # @spec generate_board(binary) :: :fail | :ok
+    # def generate_board(game_id) do
+    #     board = Board.build(21)
 
-        put_board(game_id, board)
-    end
+    #     put_board(game_id, board)
+    # end
 
     @spec get_players(binary) :: [pid]
     def get_players(game_id), do: get game_id, :players
 
-    @spec get_players_client_pids(binary) :: [pid]
-    def get_players_client_pids(game_id) do
-        get_players(game_id)
-        |> Enum.map(fn (player_id)-> Player.get_client_pid(player_id) end)
-    end
+    # @spec get_players_client_pids(binary) :: [pid]
+    # def get_players_client_pids(game_id) do
+    #     get_players(game_id)
+    #     |> Enum.map(fn (player_id)-> Player.get_client_pid(player_id) end)
+    # end
 
-    @spec get_board(binary) :: map
-    def get_board(game_id), do: get game_id, :board
+    # @spec get_board(binary) :: map
+    # def get_board(game_id), do: get game_id, :board
 
-    @spec get_players_count(binary) :: number
-    def get_players_count(game_id), do: get game_id, :players_count
+    # @spec get_players_count(binary) :: number
+    # def get_players_count(game_id), do: get game_id, :players_count
 
     @doc """
     #### put_player/2
@@ -65,8 +65,8 @@ defmodule GameServer.Game do
         end
     end
 
-    @spec put_board(binary, map) :: :fail | :ok
-    def put_board(game_id, value), do: put game_id, :board, value
+    # @spec put_board(binary, map) :: :fail | :ok
+    # def put_board(game_id, value), do: put game_id, :board, value
 
     @spec put_name(binary, binary) :: :fail | :ok
     def put_name(game_id, name), do: put game_id, :name, name
@@ -85,7 +85,7 @@ defmodule GameServer.Game do
     @spec new(binary, number) :: binary
     def new(name, players_count) do
         id = start_link()
-        id |> generate_board
+        # id |> generate_board
         id |> put_name(name)
         id |> put_players_count(players_count)
 
@@ -99,16 +99,16 @@ defmodule GameServer.Game do
         end
     end
 
-    @spec run_game_loop(binary) :: no_return
-    def run_game_loop(game_id) do
-        board = get_board(game_id)
+    # @spec run_game_loop(binary) :: no_return
+    # def run_game_loop(game_id) do
+    #     board = get_board(game_id)
 
-        resp = %{ type: :game_updated, board: board } |> Poison.encode!
+    #     resp = %{ type: :game_updated, board: board } |> Poison.encode!
 
-        get_players_client_pids(game_id) |> Enum.map(fn (pid)-> Process.send(pid, resp, []) end)
+    #     get_players_client_pids(game_id) |> Enum.map(fn (pid)-> Process.send(pid, resp, []) end)
 
-        :timer.sleep 500
+    #     :timer.sleep 500
 
-        run_game_loop(game_id)
-    end
+    #     run_game_loop(game_id)
+    # end
 end

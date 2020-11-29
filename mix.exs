@@ -20,6 +20,7 @@ defmodule GameServer.MixProject do
         ]
     end
 
+    defp elixirc_paths(:test), do: ["lib", "web", "test"]
     defp elixirc_paths(_), do: ["lib", "web"]
 
     defp deps do
@@ -29,6 +30,7 @@ defmodule GameServer.MixProject do
             {:poison, "~> 3.1"},
             {:uuid, "~> 1.1"},
             {:ex_doc, "~> 0.22", only: :dev, runtime: false},
+            {:socket, "~> 0.3.13", only: [:dev, :test], runtime: false}
         ]
     end
 end
