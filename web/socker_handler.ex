@@ -44,25 +44,7 @@ defmodule GameServer.SocketHandler do
         spawn fn ()->
             :timer.sleep 2000
 
-            broadcast(game_id, %{type: :game_starting, time_left: 5, game_id: game_id})
-
-            :timer.sleep 1000
-
-            broadcast(game_id, %{type: :game_starting, time_left: 4, game_id: game_id})
-
-            :timer.sleep 1000
-
-            broadcast(game_id, %{type: :game_starting, time_left: 3, game_id: game_id})
-
-            :timer.sleep 1000
-
-            broadcast(game_id, %{type: :game_starting, time_left: 2, game_id: game_id})
-
-            :timer.sleep 1000
-
-            broadcast(game_id, %{type: :game_starting, time_left: 1, game_id: game_id})
-
-            :timer.sleep 1000
+            game_count_down game_id
 
             # Game.run_game_loop(game_id)
         end
@@ -72,5 +54,15 @@ defmodule GameServer.SocketHandler do
 
     defp game_has_spaces_left(spaces, game_id) do
         [game_id, %{ type: :game_joined, spaces_left: spaces, game_id: game_id}]
+    end
+
+    defp game_count_down(game_id) do
+        max = 5
+        Enum.map(0..max, fn (count)->
+            broadcast(game_id, %{type: :game_starting, time_left: max - count, game_id: game_id})
+            :timer.sleep 1000
+
+            nil
+        end)
     end
 end
