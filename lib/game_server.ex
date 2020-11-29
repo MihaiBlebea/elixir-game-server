@@ -21,7 +21,7 @@ defmodule GameServer do
                 Registry, [keys: :unique, name: :player_registry]
             },
             {
-                Client, []
+                Registry, [keys: :duplicate, name: Client.get_registry_key]
             }
         ]
 

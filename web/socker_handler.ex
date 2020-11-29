@@ -12,11 +12,13 @@ defmodule GameServer.SocketHandler do
         [:sender, %{ type: :game_created, game_id: game_id, max_players: players_count }]
     end
 
-    defp handler(%{type: :game_join, game_id: game_id, client_id: _client_id, player_name: player_name}) do
+    defp handler(%{type: :game_join, game_id: game_id, player_name: player_name}) do
         player_id = player_name |> Player.new(self())
         case Game.put_player(game_id, player_id) do
             :fail -> [:sender, %{ type: :game_error, message: "could not add player to the game" }]
-            spaces -> game_has_spaces_left spaces, game_id
+            spaces ->
+                GameServer.Client.register(game_id) # Register client pid and link to the game
+                game_has_spaces_left spaces, game_id
         end
     end
 
@@ -27,13 +29,11 @@ defmodule GameServer.SocketHandler do
     end
 
     defp handler(%{type: :player_move, game_id: game_id, x: x, y: y, move_x: move_x}) do
-        clients = Game.get_players_client_pids(game_id)
-        [clients, %{ type: :player_moved, x: x, y: y, move_x: move_x}]
+        [game_id, %{ type: :player_moved, x: x, y: y, move_x: move_x}]
     end
 
     defp handler(%{type: :player_move, game_id: game_id, x: x, y: y, move_y: move_y}) do
-        clients = Game.get_players_client_pids(game_id)
-        [clients, %{ type: :player_moved, x: x, y: y, move_y: move_y}]
+        [game_id, %{ type: :player_moved, x: x, y: y, move_y: move_y}]
     end
 
     defp handler(_) do
@@ -47,12 +47,10 @@ defmodule GameServer.SocketHandler do
             Game.run_game_loop(game_id)
         end
 
-        clients = Game.get_players_client_pids(game_id)
-        [clients, %{ type: :game_joined, spaces_left: 0, game_id: game_id}]
+        [game_id, %{ type: :game_joined, spaces_left: 0, game_id: game_id}]
     end
 
     defp game_has_spaces_left(spaces, game_id) do
-        clients = Game.get_players_client_pids(game_id)
-        [clients, %{ type: :game_joined, spaces_left: spaces, game_id: game_id}]
+        [game_id, %{ type: :game_joined, spaces_left: spaces, game_id: game_id}]
     end
 end

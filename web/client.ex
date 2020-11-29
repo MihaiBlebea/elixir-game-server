@@ -1,40 +1,32 @@
 defmodule GameServer.Client do
 
-    use GenServer
+    @registry_key :client_registry
 
-    @table_name :clients_table
+    def get_registry_key(), do: @registry_key
 
-    @spec start_link(any) :: :ignore | {:error, any} | {:ok, pid}
-    def start_link(_) do
-        GenServer.start_link(__MODULE__, :ok, name: __MODULE__)
-    end
-
-    @spec init(any) :: {:ok, any}
-    def init(arg) do
-        :ets.new(@table_name, [
-            :set,
-            :public,
-            :named_table,
-            {:read_concurrency, true},
-            {:write_concurrency, true}
-        ])
-
-        {:ok, arg}
-    end
-
-    @spec get(any) :: any
-    def get(key) do
-        case :ets.lookup(@table_name, key) do
-            [] -> nil
-            [{_key, value}] -> value
+    @spec register(binary) :: :fail | :ok
+    def register(game_id) do
+        case Registry.register(@registry_key, game_id, []) do
+            {:ok, _pid} -> :ok
+            {:error, {:already_registered, _pid}} -> :fail
         end
     end
 
-    @spec put(any, any) :: true
-    def put(key, value), do: :ets.insert(@table_name, {key, value})
+    @spec dispatch(binary, map) :: :ok
+    def dispatch(game_id, response) do
+        Registry.dispatch(@registry_key, game_id, fn (entries)->
+            for {pid, _listener} <- entries, do: Process.send(pid, response, [])
+        end)
+    end
 
-    @spec create_id :: binary
-    def create_id() do
-        UUID.uuid4()
+    @spec dispatch_except_sender(binary, any) :: :ok
+    def dispatch_except_sender(game_id, response) do
+        Registry.dispatch(@registry_key, game_id, fn (entries)->
+            for {pid, _listener} <- entries do
+                if pid !== self() do
+                    Process.send(pid, response, [])
+                end
+            end
+        end)
     end
 end

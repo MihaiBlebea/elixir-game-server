@@ -1,13 +1,16 @@
 defmodule GameServer.SocketHandlerBase do
 
+    @spec __using__(any) :: any
     defmacro __using__(_args) do
         quote do
             @behaviour :cowboy_websocket
 
             require Logger
 
-            def init(request, _state) do
-                {:cowboy_websocket, request, %{client_id: GameServer.Client.create_id}}
+            alias GameServer.Client
+
+            def init(request, state) do
+                {:cowboy_websocket, request, state}
             end
 
             @spec websocket_init(map) :: {:ok, map} | {:reply, {:close, 1000, binary}, map}
@@ -17,17 +20,12 @@ defmodule GameServer.SocketHandlerBase do
 
             @spec websocket_handle({:text, binary}, any) :: {:reply, {:text, any}, any}
             def websocket_handle({:text, json}, state) do
-                resp =
-                    Poison.decode!(json)
-                    |> to_atoms
-                    |> validate_payload
-                    |> add_client_id(state.client_id)
-                    |> log
-                    |> handler
-                    |> handle_response
-                    |> log
-
-                {:reply, {:text, resp}, state}
+                Poison.decode!(json)
+                |> to_atoms
+                |> validate_payload
+                |> log
+                |> handler
+                |> handle_response(state)
             end
 
             @spec websocket_info(any, any) :: {:reply, {:text, any}, any}
@@ -56,29 +54,21 @@ defmodule GameServer.SocketHandlerBase do
                 end
             end
 
-            defp send_to_clients(response, clients) when is_list(clients) do
-                clients
-                |> Enum.map(fn (pid)->
-                    if pid != self() do
-                        Process.send(pid, response, [])
-                    end
-                end)
-            end
-
-            defp handle_response([:sender, payload]) do
-                payload |> Poison.encode!
-            end
-
-            defp handle_response([clients, payload]) do
+            defp handle_response([:sender, payload], state) do
                 response = payload |> Poison.encode!
 
-                send_to_clients response, clients
-
-                response
+                {:reply, {:text, response}, state}
             end
 
-            defp add_client_id(payload, client_id), do: Map.put(payload, :client_id, client_id)
+            defp handle_response([game_id, payload], state) do
+                response = payload |> Poison.encode!
 
+                Client.dispatch(game_id, response)
+
+                {:ok, state}
+            end
+
+            def terminate(), do: :ok
             # defp close_connection(state, ), do: {:reply, {:close, 1000, "reason"}, state}
         end
     end
