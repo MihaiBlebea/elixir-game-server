@@ -6,6 +6,8 @@ defmodule GameServer.SocketHandler do
 
     alias GameServer.Player
 
+    alias GameServer.Client
+
     defp handler(%{type: :game_create, player_count: players_count, game_name: game_name}) do
         game_id = Game.new(game_name, players_count)
 
@@ -16,9 +18,7 @@ defmodule GameServer.SocketHandler do
         player_id = player_name |> Player.new(self())
         case Game.put_player(game_id, player_id) do
             :fail -> [:sender, %{ type: :game_error, message: "could not add player to the game" }]
-            spaces ->
-                GameServer.Client.register(game_id) # Register client pid and link to the game
-                game_has_spaces_left spaces, game_id
+            spaces -> game_has_spaces_left spaces, game_id
         end
     end
 
@@ -42,9 +42,29 @@ defmodule GameServer.SocketHandler do
 
     defp game_has_spaces_left(0, game_id) do
         spawn fn ()->
-            :timer.sleep 5000
+            :timer.sleep 2000
 
-            Game.run_game_loop(game_id)
+            broadcast(game_id, %{type: :game_starting, time_left: 5, game_id: game_id})
+
+            :timer.sleep 1000
+
+            broadcast(game_id, %{type: :game_starting, time_left: 4, game_id: game_id})
+
+            :timer.sleep 1000
+
+            broadcast(game_id, %{type: :game_starting, time_left: 3, game_id: game_id})
+
+            :timer.sleep 1000
+
+            broadcast(game_id, %{type: :game_starting, time_left: 2, game_id: game_id})
+
+            :timer.sleep 1000
+
+            broadcast(game_id, %{type: :game_starting, time_left: 1, game_id: game_id})
+
+            :timer.sleep 1000
+
+            # Game.run_game_loop(game_id)
         end
 
         [game_id, %{ type: :game_joined, spaces_left: 0, game_id: game_id}]

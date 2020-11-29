@@ -66,6 +66,12 @@ defmodule GameServer.SocketHandlerBase do
                 {:ok, state}
             end
 
+            defp broadcast(game_id, payload) do
+                response = payload |> Poison.encode!
+
+                GameServer.Client.dispatch(game_id, response)
+            end
+
             def terminate(), do: :ok
             # defp close_connection(state, ), do: {:reply, {:close, 1000, "reason"}, state}
         end

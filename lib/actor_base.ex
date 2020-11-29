@@ -42,6 +42,16 @@ defmodule GameServer.ActorBase do
                     pid -> Agent.update(pid, fn (state)-> Map.put(state, key, value) end)
                 end
             end
+
+            defp push(id, key, value) when is_binary(id) and is_atom(key) do
+                case lookup(id) do
+                    nil -> :fail
+                    pid -> Agent.update(pid, fn (state)->
+                        list = Map.get(state, key)
+                        Map.put(state, key, list ++ [value])
+                    end)
+                end
+            end
         end
     end
 end

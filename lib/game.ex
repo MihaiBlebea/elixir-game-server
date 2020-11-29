@@ -1,34 +1,14 @@
 defmodule GameServer.Game do
 
-    alias GameServer.Board
-
-    alias GameServer.Player
-
     defstruct id: nil, name: nil, board: nil, players_count: nil, players: []
 
     use GameServer.ActorBase, registry_name: :game_registry
 
-    # @spec generate_board(binary) :: :fail | :ok
-    # def generate_board(game_id) do
-    #     board = Board.build(21)
-
-    #     put_board(game_id, board)
-    # end
-
     @spec get_players(binary) :: [pid]
     def get_players(game_id), do: get game_id, :players
 
-    # @spec get_players_client_pids(binary) :: [pid]
-    # def get_players_client_pids(game_id) do
-    #     get_players(game_id)
-    #     |> Enum.map(fn (player_id)-> Player.get_client_pid(player_id) end)
-    # end
-
-    # @spec get_board(binary) :: map
-    # def get_board(game_id), do: get game_id, :board
-
-    # @spec get_players_count(binary) :: number
-    # def get_players_count(game_id), do: get game_id, :players_count
+    @spec get_max_players(binary) :: number
+    def get_max_players(game_id), do: get game_id, :players_count
 
     @doc """
     #### put_player/2
@@ -51,64 +31,48 @@ defmodule GameServer.Game do
     """
     @spec put_player(binary, binary) :: :fail | integer
     def put_player(game_id, player_id) do
-        client_pid = Player.get_client_pid player_id
-        case lookup(game_id) do
-            nil -> :fail
-            pid ->
-                cond do
-                    player_already_joined? game_id, client_pid -> :fail
-                    player_spaces_left(game_id) == 0 -> :fail
-                    true ->
-                        Agent.update(pid, fn (state)-> Map.put(state, :players, state.players ++ [player_id]) end)
-                        player_spaces_left game_id
-                end
+        already_joined =
+            get_current_joined_player(game_id)
+            |> Enum.filter(fn (pid)->
+                pid == self()
+            end)
+            |> length
+            |> already_joined?
+
+        cond do
+            already_joined -> :fail
+            no_spaces_left? get_current_joined_player(game_id) |> length, get_max_players(game_id) -> :fail
+            true ->
+                GameServer.Client.register(game_id)
+                push(game_id, :players, player_id)
+                player_spaces_empty(get_current_joined_player(game_id) |> length, get_max_players(game_id))
         end
     end
-
-    # @spec put_board(binary, map) :: :fail | :ok
-    # def put_board(game_id, value), do: put game_id, :board, value
 
     @spec put_name(binary, binary) :: :fail | :ok
     def put_name(game_id, name), do: put game_id, :name, name
 
-    @spec put_players_count(binary, any) :: :fail | :ok
-    def put_players_count(game_id, value), do: put game_id, :players_count, value
-
-    @spec player_spaces_left(binary) :: number
-    def player_spaces_left(game_id) do
-        max_players_count = get game_id, :players_count
-        players_count = get(game_id, :players) |> length
-
-        max_players_count - players_count
-    end
+    @spec put_max_players(binary, any) :: :fail | :ok
+    def put_max_players(game_id, value), do: put game_id, :players_count, value
 
     @spec new(binary, number) :: binary
     def new(name, players_count) do
         id = start_link()
-        # id |> generate_board
         id |> put_name(name)
-        id |> put_players_count(players_count)
+        id |> put_max_players(players_count)
 
         id
     end
 
-    defp player_already_joined?(game_id, client_pid) do
-        case game_id |> get_players |> Enum.filter(fn (player_id)-> Player.get_client_pid(player_id) == client_pid end) |> length do
-            0 -> false
-            _ -> true
-        end
+    defp already_joined?(0), do: false
+
+    defp already_joined?(_), do: true
+
+    defp no_spaces_left?(current, max_players), do: max_players == current
+
+    defp player_spaces_empty(current, max_players), do: max_players - current
+
+    defp get_current_joined_player(game_id) do
+        GameServer.Client.lookup(game_id) |> Enum.map(fn ({pid, []})-> pid end)
     end
-
-    # @spec run_game_loop(binary) :: no_return
-    # def run_game_loop(game_id) do
-    #     board = get_board(game_id)
-
-    #     resp = %{ type: :game_updated, board: board } |> Poison.encode!
-
-    #     get_players_client_pids(game_id) |> Enum.map(fn (pid)-> Process.send(pid, resp, []) end)
-
-    #     :timer.sleep 500
-
-    #     run_game_loop(game_id)
-    # end
 end

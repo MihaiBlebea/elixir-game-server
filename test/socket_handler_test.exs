@@ -29,7 +29,7 @@ defmodule SocketHandlerTest do
             game_name: "abcd"
         }
 
-        message = socket_connect |> socket_send(request) |> socket_receive
+        message = socket_connect() |> socket_send(request) |> socket_receive
 
         assert message.type == :game_created
         assert is_binary message.game_id
@@ -43,7 +43,7 @@ defmodule SocketHandlerTest do
             game_name: "abcd"
         }
 
-        conn = socket_connect
+        conn = socket_connect()
 
         create_resp = conn |> socket_send(create_req) |> socket_receive
 
@@ -67,7 +67,7 @@ defmodule SocketHandlerTest do
             game_name: "abcd"
         }
 
-        conn = socket_connect
+        conn = socket_connect()
 
         create_resp = conn |> socket_send(create_req) |> socket_receive
 
@@ -92,7 +92,7 @@ defmodule SocketHandlerTest do
             game_name: "abcd"
         }
 
-        conn = socket_connect
+        conn = socket_connect()
 
         create_resp = conn |> socket_send(create_req) |> socket_receive
 
