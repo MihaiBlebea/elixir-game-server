@@ -6,8 +6,6 @@ defmodule GameServer.SocketHandler do
 
     alias GameServer.Player
 
-    alias GameServer.Client
-
     defp handler(%{type: :game_create, player_count: players_count, game_name: game_name}) do
         game_id = Game.new(game_name, players_count)
 
@@ -19,12 +17,6 @@ defmodule GameServer.SocketHandler do
         case Game.put_player(game_id, player_id) do
             :fail -> [:sender, %{ type: :game_error, message: "could not add player to the game" }]
             spaces -> game_has_spaces_left spaces, game_id
-        end
-    end
-
-    defp handler(%{type: :level_start, game_id: game_id}) do
-        spawn fn ()->
-            Game.get_board(game_id)
         end
     end
 
