@@ -9,34 +9,33 @@ defmodule GameServer.SnakeGame do
     @spec game_loop(binary) :: none
     def game_loop(game_id) do
 
-        state = get_state game_id
-        IO.inspect state
-        :timer.sleep 500
+        game_id |> move_players
 
-        game_id |> broadcast(Poison.encode!(state))
+        state = game_id |> get_state
+
+        game_id |> broadcast(state)
+
+        :timer.sleep 500
 
         game_loop(game_id)
     end
-    # alias GameServer.Powerup
 
-    # defstruct status: nil, level: %{}, snakes: [], power_ups: []
-
-    def event(_game_id, %{target: snake_id, move_x: -1, move_y: 0}) do
-        Snake.move snake_id, -1, 0
+    defp move_players(game_id) do
+        game_id
+        |> get_players
+        |> Enum.map(fn (player_id)->
+            Snake.move player_id
+        end)
     end
 
-    # @spec game_loop(binary) :: none
-    # def game_loop(game_id), do: game_loop(game_id, %GameServer.SnakeGame{})
-
-    # @spec game_loop(binary, %GameServer.SnakeGame{}) :: none
-    # def game_loop(game_id, %GameServer.SnakeGame{} = state) do
-
-    #     IO.inspect state
-    #     :timer.sleep 500
-
-    #     encoded = state |> Poison.encode!
-    #     GameServer.Client.dispatch(game_id, encoded)
-
-    #     game_loop(game_id, state)
-    # end
+    defp did_snakes_collide?(game_id) do
+        game_id
+        |> get_players
+        |> Enum.map(fn (player_id)->
+            Snake.get_body player_id
+        end)
+        |> cond do
+            true -> false
+        end
+    end
 end

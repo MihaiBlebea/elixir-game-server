@@ -13,35 +13,36 @@ defmodule GameServer.SocketHandler do
 
         case get_game_module().put_player(game_id, player_id) do
             :fail -> [:sender, %{ type: :game_error, message: "could not add player to the game" }]
-            spaces -> game_has_spaces_left spaces, game_id
+            spaces -> game_has_spaces_left spaces, game_id, player_id
         end
     end
 
-    defp handler(%{type: :player_move, game_id: game_id, x: x, y: y, move_x: move_x}) do
-        [game_id, %{ type: :player_moved, x: x, y: y, move_x: move_x}]
-    end
+    defp handler(%{type: :player_move, game_id: _game_id, player_id: player_id, x: x, y: y}) do
+        get_player_module().move player_id, x, y
 
-    defp handler(%{type: :player_move, game_id: game_id, x: x, y: y, move_y: move_y}) do
-        [game_id, %{ type: :player_moved, x: x, y: y, move_y: move_y}]
+        nil
     end
 
     defp handler(_) do
         [:sender, %{type: :game_error, message: "invalid request"}]
     end
 
-    defp game_has_spaces_left(0, game_id) do
+    defp game_has_spaces_left(0, game_id, player_id) do
+        # Play the game in this process
         spawn fn ()->
             :timer.sleep 2000
 
             game_count_down game_id
 
             get_game_module().game_loop(game_id)
+
+            [game_id, %{ type: :game_over }]
         end
 
-        [game_id, %{ type: :game_joined, spaces_left: 0, game_id: game_id}]
+        [game_id, %{ type: :game_joined, spaces_left: 0, game_id: game_id, player_id: player_id}]
     end
 
-    defp game_has_spaces_left(spaces, game_id) do
+    defp game_has_spaces_left(spaces, game_id, player_id) do
         [game_id, %{ type: :game_joined, spaces_left: spaces, game_id: game_id}]
     end
 

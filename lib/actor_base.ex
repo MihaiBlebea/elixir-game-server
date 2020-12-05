@@ -36,7 +36,7 @@ defmodule GameServer.ActorBase do
                 end
             end
 
-            defp get_all(id) when is_binary(id) do
+            def get_all(id) when is_binary(id) do
                 case lookup(id) do
                     nil -> :fail
                     pid -> pid |> Agent.get(fn (state)-> state end)

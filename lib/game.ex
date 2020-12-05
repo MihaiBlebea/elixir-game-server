@@ -1,5 +1,11 @@
 defmodule GameServer.Game do
 
+    defstruct id: nil, name: nil, level: %{}, max_players: nil, players: []
+
+    use GameServer.ActorBase, registry_name: :game_registry
+
+    alias GameServer.Player
+
     @spec __using__(any) :: any
     defmacro __using__(_args) do
 
@@ -17,17 +23,17 @@ defmodule GameServer.Game do
             @spec get_max_players(binary) :: number
             def get_max_players(game_id), do: get game_id, :max_players
 
-            def get_state(game_id) do
-                state = get_all game_id
+            def get_state(game_id), do: GameServer.Game.get_state(game_id)
+            #     state = get_all game_id
 
-                players =
-                    state.players
-                    |> Enum.map(fn (player_id)->
-                        get_player_module().get_all(player_id)
-                    end)
+            #     players =
+            #         state.players
+            #         |> Enum.map(fn (player_id)->
+            #             get_player_module().get_all(player_id)
+            #         end)
 
-                Map.put(:players, players)
-            end
+            #     Map.put(:players, players)
+            # end
 
             @spec put_player(binary, binary) :: :fail | integer
             def put_player(game_id, player_id) do
@@ -77,13 +83,27 @@ defmodule GameServer.Game do
                 GameServer.Client.lookup(game_id) |> Enum.map(fn ({pid, []})-> pid end)
             end
 
-            defdelegate broadcast(game_id, response), to: Client, as: :dispatch
+            def broadcast(game_id, response) do
+                resp = response |> Map.delete(:client_pid) |> IO.inspect |> Poison.encode!
+                Client.dispatch(game_id, resp)
+            end
 
             defp put_optional_params(player_id) do
                 for {key, value} <- init(), do:  put player_id, key, value
             end
-
-            defp get_player_module, do: Application.get_env(:game_server, :player_module)
         end
+    end
+
+    @spec get_state(binary) :: map
+    def get_state(game_id) do
+        state = get_all game_id
+
+        players =
+            state.players
+            |> Enum.map(fn (player_id)->
+                Player.get_all(player_id)
+            end)
+
+        state |> Map.put(:players, players)
     end
 end

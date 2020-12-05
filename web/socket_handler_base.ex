@@ -5,6 +5,8 @@ defmodule GameServer.SocketHandlerBase do
         quote do
             @behaviour :cowboy_websocket
 
+            @timeout 60000
+
             require Logger
 
             def init(request, state) do
@@ -65,6 +67,8 @@ defmodule GameServer.SocketHandlerBase do
 
                 {:ok, state}
             end
+
+            defp handle_response(nil, state), do: {:ok, state}
 
             defp broadcast(game_id, payload) do
                 response = payload |> Poison.encode!
