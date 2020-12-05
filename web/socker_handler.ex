@@ -2,19 +2,16 @@ defmodule GameServer.SocketHandler do
 
     use GameServer.SocketHandlerBase
 
-    alias GameServer.Game
-
-    alias GameServer.Player
-
     defp handler(%{type: :game_create, player_count: players_count, game_name: game_name}) do
-        game_id = Game.new(game_name, players_count)
+        game_id = get_game_module().new(game_name, players_count)
 
         [:sender, %{ type: :game_created, game_id: game_id, max_players: players_count }]
     end
 
     defp handler(%{type: :game_join, game_id: game_id, player_name: player_name}) do
-        player_id = player_name |> Player.new(self())
-        case Game.put_player(game_id, player_id) do
+        player_id = player_name |> get_player_module().new(self())
+
+        case get_game_module().put_player(game_id, player_id) do
             :fail -> [:sender, %{ type: :game_error, message: "could not add player to the game" }]
             spaces -> game_has_spaces_left spaces, game_id
         end
@@ -38,7 +35,7 @@ defmodule GameServer.SocketHandler do
 
             game_count_down game_id
 
-            # Game.run_game_loop(game_id)
+            get_game_module().game_loop(game_id)
         end
 
         [game_id, %{ type: :game_joined, spaces_left: 0, game_id: game_id}]
@@ -57,4 +54,8 @@ defmodule GameServer.SocketHandler do
             nil
         end)
     end
+
+    defp get_game_module(), do: Application.get_env(:game_server, :game_module)
+
+    defp get_player_module, do: Application.get_env(:game_server, :player_module)
 end
