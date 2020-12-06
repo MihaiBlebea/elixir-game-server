@@ -11,7 +11,7 @@ defmodule GameServer.Game do
 
         quote do
 
-            defstruct id: nil, name: nil, level: %{}, max_players: nil, players: []
+            defstruct id: nil, name: nil, level: %{x: 150, y: 150}, max_players: nil, players: []
 
             use GameServer.ActorBase, registry_name: :game_registry
 

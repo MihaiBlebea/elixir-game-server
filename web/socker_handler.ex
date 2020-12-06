@@ -36,13 +36,13 @@ defmodule GameServer.SocketHandler do
 
             get_game_module().game_loop(game_id)
 
-            [game_id, %{ type: :game_over }]
+            broadcast(game_id, %{type: :game_over})
         end
 
         [game_id, %{ type: :game_joined, spaces_left: 0, game_id: game_id, player_id: player_id}]
     end
 
-    defp game_has_spaces_left(spaces, game_id, player_id) do
+    defp game_has_spaces_left(spaces, game_id, _player_id) do
         [game_id, %{ type: :game_joined, spaces_left: spaces, game_id: game_id}]
     end
 
