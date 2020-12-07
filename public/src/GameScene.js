@@ -3,28 +3,46 @@ import MoveTo from 'phaser3-rex-plugins/plugins/moveto.js'
 
 export default class GameScene extends Phaser.Scene
 {
+    gameId = null
 
-    players = []
+    playerId = null
+
+    cellSize = 32
+
+    level = {}
 
     constructor()
     {
         super({key: "game-scene"})
     }
 
-    init({ board, game_id })
+    init({ gameId, playerId })
     {
-        console.log(board)
-        this.board = board
-        this.gameId = game_id
+        this.playerId = playerId
+        this.gameId = gameId
+
+        // let levelX = 150
+        // let levelY = 150
+        // for (let x = 0; x < levelX; x++) {
+        //     for (let y = 0; y < levelY; y++) {
+        //         if (this.level[x] === undefined) {
+        //             this.level[x] = null
+        //         }
+
+        //         this.level[x][y] = null
+        //     }
+        // }
     }
 
     preload()
     {
-        this.load.spritesheet('player', './assets/Male/Male 01-1.png', {frameWidth: 32, frameHeight: 32})
-        this.load.spritesheet('enemy', './assets/Soldier/Soldier 03-4.png', {frameWidth: 32, frameHeight: 32})
-        this.load.spritesheet('brick-wall', './assets/brick.png', {frameWidth: 40, frameHeight: 40})
-        this.load.spritesheet('concrete-wall', './assets/concrete.png', {frameWidth: 40, frameHeight: 40})
-        this.load.spritesheet('bomb', './assets/bomb.png', {frameWidth: 40, frameHeight: 40})
+        // this.load.spritesheet('player', './assets/Male/Male 01-1.png', {frameWidth: 32, frameHeight: 32})
+        // this.load.spritesheet('enemy', './assets/Soldier/Soldier 03-4.png', {frameWidth: 32, frameHeight: 32})
+        // this.load.spritesheet('brick-wall', './assets/brick.png', {frameWidth: 40, frameHeight: 40})
+        // this.load.spritesheet('concrete-wall', './assets/concrete.png', {frameWidth: 40, frameHeight: 40})
+        // this.load.spritesheet('bomb', './assets/bomb.png', {frameWidth: 40, frameHeight: 40})
+
+        this.load.spritesheet('snake', './assets/snake.png', {frameWidth: 64, frameHeight: 64})
     }
 
     create()
@@ -35,35 +53,48 @@ export default class GameScene extends Phaser.Scene
         this.game.bridge.connection.onmessage = (e)=> {
             console.log(e)
             let data = JSON.parse(e.data)
-            if (data.type === 'game_moved') {
-                this.players.forEach((player)=> {
-                    if (player.x === data.x && player.y === data.y) {
-                        // console.log(data)
+            if (data.type === 'game_playing') {
 
-                        let moveTo = new MoveTo(player.player, {
-                            speed: 400,
-                            rotateToTarget: false
-                        })
-                        // let moveTo = scene.plugins.get('rexMoveTo').add(player.player, {
-                        //     speed: 400,
-                        //     rotateToTarget: false
-                        // })
-
-                        if (data.hasOwnProperty('move_x')) {
-                            moveTo.moveTo((data.x + data.move_x) * 40, data.y * 40)
-                            player.x = data.x + data.move_x
-                        }
-
-                        if (data.hasOwnProperty('move_y')) {
-                            moveTo.moveTo(data.x * 40, (data.y + data.move_y) * 40)
-                            player.y = data.y + data.move_y
-                        }
-                    }
+                data.players.forEach((player)=> {
+                    player.body.forEach((segment)=> {
+                        
+                        this.player = this.physics.add.sprite(segment.x * 32, segment.y * 32, 'snake', 3).setOrigin(0, 0)
+                        
+                    })
                 })
+
+                data.power_ups.forEach((powerUp)=> {
+                    this.physics.add.sprite(powerUp.x * 32, powerUp.y * 32, 'snake', 15).setOrigin(0, 0)
+                })
+                
+                // this.players.forEach((player)=> {
+                //     if (player.x === data.x && player.y === data.y) {
+                //         // console.log(data)
+
+                //         let moveTo = new MoveTo(player.player, {
+                //             speed: 400,
+                //             rotateToTarget: false
+                //         })
+                //         // let moveTo = scene.plugins.get('rexMoveTo').add(player.player, {
+                //         //     speed: 400,
+                //         //     rotateToTarget: false
+                //         // })
+
+                //         if (data.hasOwnProperty('move_x')) {
+                //             moveTo.moveTo((data.x + data.move_x) * 40, data.y * 40)
+                //             player.x = data.x + data.move_x
+                //         }
+
+                //         if (data.hasOwnProperty('move_y')) {
+                //             moveTo.moveTo(data.x * 40, (data.y + data.move_y) * 40)
+                //             player.y = data.y + data.move_y
+                //         }
+                //     }
+                // })
             }
         }
 
-        this.buildBoard()
+        // this.buildBoard()
         
 
         // this.physics.add.collider(this.player, this.enemy, (event) => {
@@ -80,46 +111,46 @@ export default class GameScene extends Phaser.Scene
 
 		// this.player.setCollideWorldBounds({ collides: true })
 
-        this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('player', {start: 3, end: 5}),
-            repeatw: -1,
-            frameRate: 10
-        })
+        // this.anims.create({
+        //     key: 'left',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 3, end: 5}),
+        //     repeatw: -1,
+        //     frameRate: 10
+        // })
 
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('player', {start: 6, end: 8}),
-            repeat: -1,
-            frameRate: 10
-        })
+        // this.anims.create({
+        //     key: 'right',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 6, end: 8}),
+        //     repeat: -1,
+        //     frameRate: 10
+        // })
 
-        this.anims.create({
-            key: 'up',
-            frames: this.anims.generateFrameNumbers('player', {start: 9, end: 11}),
-            repeat: -1,
-            frameRate: 10
-        })
+        // this.anims.create({
+        //     key: 'up',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 9, end: 11}),
+        //     repeat: -1,
+        //     frameRate: 10
+        // })
 
-        this.anims.create({
-            key: 'down',
-            frames: this.anims.generateFrameNumbers('player', {start: 0, end: 2}),
-            repeat: -1,
-            frameRate: 10
-        })
+        // this.anims.create({
+        //     key: 'down',
+        //     frames: this.anims.generateFrameNumbers('player', {start: 0, end: 2}),
+        //     repeat: -1,
+        //     frameRate: 10
+        // })
 
-        this.anims.create({
-            key: 'bomb',
-            frames: this.anims.generateFrameNumbers('bomb', {start: 3, end: 5}),
-            repeatw: -1,
-            frameRate: 5
-        })
+        // this.anims.create({
+        //     key: 'bomb',
+        //     frames: this.anims.generateFrameNumbers('bomb', {start: 3, end: 5}),
+        //     repeatw: -1,
+        //     frameRate: 5
+        // })
 
-        // this.key_D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
-        // this.key_A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
-        // this.key_S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)
-        // this.key_W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W)
-        // this.key_space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
+        this.key_D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+        this.key_A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
+        this.key_S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)
+        this.key_W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W)
+        this.key_space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
 
         // this.input.keyboard.on("keyup", (event)=> {
         //     if (event.key == "p") {
@@ -129,43 +160,19 @@ export default class GameScene extends Phaser.Scene
 
         this.input.keyboard.on("keyup", (event)=> {
             if (event.key === "a") {
-                this.game.bridge.submit({
-                    type: "game_move",
-                    x: this.players[0].x,
-                    y: this.players[0].y,
-                    move_x: -1,
-                    game_id: this.gameId
-                })
+                this.game.bridge.movePlayer(this.gameId, this.playerId, -1, 0)
             }
 
             if (event.key === "d") {
-                this.game.bridge.submit({
-                    type: "game_move",
-                    x: this.players[0].x,
-                    y: this.players[0].y,
-                    move_x: 1,
-                    game_id: this.gameId
-                })
+                this.game.bridge.movePlayer(this.gameId, this.playerId, 1, 0)
             }
 
             if (event.key === "w") {
-                this.game.bridge.submit({
-                    type: "game_move",
-                    x: this.players[0].x,
-                    y: this.players[0].y,
-                    move_y: -1,
-                    game_id: this.gameId
-                })
+                this.game.bridge.movePlayer(this.gameId, this.playerId, 0, -1)
             }
 
             if (event.key === "s") {
-                this.game.bridge.submit({
-                    type: "game_move",
-                    x: this.players[0].x,
-                    y: this.players[0].y,
-                    move_y: 1,
-                    game_id: this.gameId
-                })
+                this.game.bridge.movePlayer(this.gameId, this.playerId, 0, 1)
             }
         })
     }

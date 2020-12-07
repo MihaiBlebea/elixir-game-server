@@ -4,6 +4,12 @@ export default class IntroScene extends Phaser.Scene
 {
     sharedConfig = null
 
+    title = null
+
+    playerId = null
+
+    gameId = null
+
     constructor(sharedConfig)
     {
         super({key: "intro-scene"})
@@ -27,8 +33,8 @@ export default class IntroScene extends Phaser.Scene
         this.handleSocketConnection()
 
         // scene title
-        this.add.text(this.canvasWidth / 2, 200, 'Join or create a new game', { color: 'white', fontFamily: 'Arial', fontSize: '32px '}).setOrigin(0.5)
-
+        this.title = this.add.text(this.canvasWidth / 2, 200, 'Join or create a new game', { color: 'white', fontFamily: 'Arial', fontSize: '32px '}).setOrigin(0.5)
+        
         // scene form html
         let element = this.add.dom(400, 600).createFromCache('intro-form')
 
@@ -38,7 +44,7 @@ export default class IntroScene extends Phaser.Scene
 
             if (event.target.name === 'createGameButton') {
                 
-                this.game.bridge.submit({ type: 'game_create', players_count: 2 })
+                this.game.bridge.createGame('game_1', 1)
                 
             } else if (event.target.name === 'joinGameButton') {
 
@@ -48,7 +54,7 @@ export default class IntroScene extends Phaser.Scene
                     return
                 }
 
-                this.game.bridge.submit({ type: 'game_join', game_id: gameId })
+                this.game.bridge.joinGame(gameId, username)
             }
         })
     }
@@ -67,27 +73,38 @@ export default class IntroScene extends Phaser.Scene
                 let data = JSON.parse(e.data)
 
                 if (data.type === 'game_created') {
-                    // this.game.scene.remove('intro-scene')
-                    // this.game.scene.start('game-scene', data)
+                    console.log(data)
                     document.getElementById('game-code').value = data.game_id
                 }
 
                 if (data.type === 'game_joined') {
-                    // this.game.scene.remove('intro-scene')
-                    // this.game.scene.start('game-scene', data)
-                    if (data.hasOwnProperty('board') === true) {
-                        this.game.scene.remove('intro-scene')
-                        this.game.scene.start('game-scene', data)
-                    } else {
+                    console.log(data)
+                    this.handleChangeTitle(`Players to join ${ data.spaces_left } - Waiting for other players to join...`)
+                    this.gameId = data.game_id
+                    this.playerId = data.player_id
+                }
 
-                        document.getElementById('game-lobby').innerHTML = "Waiting for player..."
-                    }
+                if (data.type === 'game_starting') {
+                    this.handleChangeTitle(`Game starting in ${ data.time_left }...`)
+                }
+
+                if (data.type === 'game_started') {
+                    this.handleStartGameScene()
                 }
             }
-
-            // conn.send(JSON.stringify({type: 'game_join'}))
         }).catch((e)=> {
             console.log(e)
         })
+    }
+
+    handleStartGameScene(data)
+    {
+        this.game.scene.remove('intro-scene')
+        this.game.scene.start('game-scene', { gameId: this.gameId, playerId: this.playerId })
+    }
+
+    handleChangeTitle(text)
+    {
+        this.title.text = text
     }
 }

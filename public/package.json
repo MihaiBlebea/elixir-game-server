@@ -6,7 +6,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "node ./server.js",
-        "build": "parcel build ./src/index.js"
+        "build": "parcel build ./src/index.js",
+        "watch": "parcel watch ./src/index.js"
     },
     "author": "",
     "license": "ISC",

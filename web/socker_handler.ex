@@ -54,6 +54,9 @@ defmodule GameServer.SocketHandler do
 
             nil
         end)
+
+        # Send game started event
+        broadcast(game_id, %{type: :game_started, time_left: 0, game_id: game_id})
     end
 
     defp get_game_module(), do: Application.get_env(:game_server, :game_module)

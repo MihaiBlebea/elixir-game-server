@@ -51,7 +51,7 @@ defmodule GameServer.SnakeGame do
     end
 
     defp continue_game(game_id) do
-        state = game_id |> get_state
+        state = game_id |> get_state |> Map.put(:type, :game_playing)
 
         game_id |> broadcast(state)
 

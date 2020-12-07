@@ -31,4 +31,30 @@ export default class Bridge
 
         this.connection.send(JSON.stringify(data))
     }
+
+    createGame(gameName, playerCount = 1) {
+        this.submit({
+            type: "game_create",
+            player_count: playerCount,
+            game_name: gameName
+        })
+    }
+
+    joinGame(gameId, playerName) {
+        this.submit({
+            type: "game_join",
+            game_id: gameId,
+            player_name: playerName
+        })
+    }
+
+    movePlayer(gameId, playerId, x, y) {
+        this.submit({
+            type: "player_move",
+            game_id: gameId,
+            player_id: playerId,
+            x,
+            y
+        })
+    }
 }
